@@ -1,0 +1,245 @@
+package eg.edu.alexu.csd.datastructure.iceHockey;
+import java.io.*; 
+import java.util.Arrays; 
+
+public class players implements IPlayersFinder {
+	int index[][]=new int[5000][2];
+	int check[][]=new int[50][50];
+	int row=0;
+	void search(String[] photo, int team , int r , int c ) {
+		index[row][0]=r;
+		index[row][1]=c;
+		check[r][c]=-1;
+		row++;
+		char k =(char)(team+48);
+		if(c+1<photo[0].length()&&check[r][c+1]!=-1&& photo[r].charAt(c+1)==k) {
+			search(photo,team,r,c+1);
+		}
+		if(c-1>=0&&check[r][c-1]!=-1&& photo[r].charAt(c-1)==k) {
+			search(photo,team,r,c-1);
+		}
+		if(r+1<photo.length&&check[r+1][c]!=-1&& photo[r+1].charAt(c)==k) {
+			search(photo,team,r+1,c);
+		}
+		if(r-1>=0&&check[r-1][c]!=-1&& photo[r-1].charAt(c)==k) {
+			search(photo,team,r-1,c);
+		}
+	}
+	
+	public java.awt.Point[] findPlayers(String[] photo, int team, int threshold){
+		if(photo!=null) {
+		char k =(char)(team+48);
+		for(int i=0;i<5000;i++) {
+			for(int j=0;j<2;j++) {
+				index[i][j]=-2;
+			}
+		}
+		for(int i=0;i<50;i++) {
+			for(int j=0;j<50;j++) {
+				check[i][j]=0;
+			}
+		}
+		for(int i=0;i<photo.length;i++) {
+			for(int j=0;j<photo[0].length();j++) {
+				if(photo[i].charAt(j)==k&&check[i][j]!=-1) {
+					search(photo,team,i,j);
+					index[row][0]=-1;
+					index[row][1]=-1;
+					row++;
+				}
+			}
+		}
+		int z=0;
+		int s=0;
+		int io=0;
+		int req;
+		if(threshold%4==0) {
+			req=threshold/4;
+		}
+		else {
+			req=threshold/4+1;
+		}
+		for(int i=0;i<5000;i++) {
+			if(i==0) {
+				for(int j=i;j-i<req;j++) {
+					if(index[j][0]==-1) {
+						s--;
+						z++;
+						break;
+					}
+					
+				}
+			}
+			if(index[i][0]==-1) {
+					s++;
+					io++;
+					for(int j=i+1;j-(i+1)<req;j++) {
+						if(index[j][0]==-1) {
+							s--;
+							z++;
+							break;
+						}
+						
+					}
+			}
+			
+		}
+		int area[]=new int [io];
+		
+		int rw=0;
+		int cl=0;
+		int refuse[][]=new int[z][2];
+		for(int i=0;i<5000;i++) {
+			if(i==0) {
+				for(int j=i;j-i<req;j++) {
+					if(index[j][0]==-1) {
+						refuse[rw][0]=i;
+						refuse[rw][1]=cl;
+						rw++;
+						break;
+					}
+					cl++;
+				}
+			}
+			if(index[i][0]==-1) {
+					cl=0;
+					for(int j=i+1;j-(i+1)<req;j++) {
+						if(index[j][0]==-1) {
+							refuse[rw][0]=i+1;
+							refuse[rw][1]=cl;
+							rw++;
+							break;
+						}
+						cl++;
+					}
+			}
+			
+		}
+		java.awt.Point[] centers=new java.awt.Point[io];
+		int cd=0;
+		int rd=0;
+		int maxx,maxy,minx,miny;
+		int yy=0;
+		int rt=0;
+		while(index[rd][0]!=-2&&rd<5000) {
+			maxx=index[rd][0];
+			minx=index[rd][0];
+			maxy=index[rd][1];
+			miny=index[rd][1];
+			int countr=0;
+			while(index[rd][0]!=-1&&rd<5000) {
+				if(countr==0) {
+					area[rt]=rd;
+					rt++;
+				}
+				countr++;
+				if(index[rd][0]>maxx) {
+					maxx=index[rd][0];
+				}
+				if(index[rd][0]<minx) {
+					minx=index[rd][0];
+				}
+				if(index[rd][1]>maxy) {
+					maxy=index[rd][1];
+				}
+				if(index[rd][1]<miny) {
+					miny=index[rd][1];
+				}
+				rd++;
+			}
+			rd++;
+			
+			java.awt.Point cnr=new java.awt.Point();
+			cnr.y=maxx+minx+1;
+			cnr.x=maxy+miny+1;
+			centers[cd]=cnr;
+			
+			cd++;
+			
+		}if(z!=0) {
+		int tk=0;
+		for(int i=0;i<io;i++) {
+			if (area[i]==refuse[tk][0]) {
+				centers[i].x=-1;
+				centers[i].y=-1;
+				tk++;
+				if(tk>=z) {
+					break;
+				}
+			}
+		}
+		}
+		java.awt.Point[] finalCenters=new java.awt.Point[s];
+		int u=0;
+		for(int i=0;i<io;i++) {
+			if(centers[i].x!=-1) {
+				java.awt.Point wseet=new java.awt.Point();
+				wseet.x=centers[i].x;
+				wseet.y=centers[i].y;
+				finalCenters[u]=wseet;
+				u++;
+			}
+		}
+		int [][] sort=new int[2][s];
+		for(int i=0;i<s;i++) {
+			sort[0][i]=finalCenters[i].x;
+			sort[1][i]=finalCenters[i].y;
+		}
+		int [][] sortlike=new int[2][s];
+		for(int i=0;i<2;i++) {
+			for(int j=0;j<s;j++) {
+				sortlike[i][j]=sort[i][j];
+			}
+		}
+		Arrays.sort(sort[0]);
+		for(int i=0;i<s;i++) {
+			for(int j=0;j<s;j++) {
+				if(sort[0][i]==sortlike[0][j]) {
+					sort[1][i]=sortlike[1][j];
+					sortlike[0][j]=-1;
+					break;
+				}
+			}
+		}
+		for(int i=0;i<s-1;i++) {
+			int contr=0;
+			if(sort[0][i]==sort[0][i+1]) {
+				contr++;
+				for(int j=i+1;j<s;j++) {
+					if(sort[0][j]==sort[0][j+1]) {
+						contr++;
+					}
+					else {
+						int sortY[]=new int[contr];
+						for(int w=0;w<contr;w++) {
+							sortY[w]=sort[1][i];	
+						}
+						Arrays.sort(sortY);
+						for(int w=0;w<contr;w++) {
+							sort[1][i]=sortY[w];	
+						}
+						i=j-1;
+						break;
+					}
+				}
+				
+			}
+		}
+		java.awt.Point[] sortedCenters=new java.awt.Point[s];
+		for(int i=0;i<s;i++) {
+			java.awt.Point wseet=new java.awt.Point();
+			wseet.x=sort[0][i];
+			wseet.y=sort[1][i];
+			sortedCenters[i]=wseet;
+		}
+		
+		return sortedCenters;
+		}
+		else {
+			return null;
+		}
+		
+	}
+	
+	
+}
